@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Me When...</title>
+  <!-- Google Fonts: Great Vibes (Calligraphy), Alex Brush (Handwriting), Playfair Display (Classic Thin), Cormorant Garamond (English Italic) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Great+Vibes&family=Playfair+Display:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+
+  <style>
+    /* Palette: Almond Cream (#F5EADC), Blush Petal (#FFD7DB), Dusty Rose (#E18498), Espresso Brown (#402E2A) */
+    :root {
+      --almond-cream: #F5EADC;
+      --blush-petal: #FFD7DB;
+      --dusty-rose: #E18498;
+      --espresso-brown: #402E2A;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--almond-cream);
+      color: var(--espresso-brown);
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Judul Website - Calligraphy */
+    h1.site-title {
+      font-family: 'Great Vibes', cursive;
+      font-weight: bold;
+      font-size: 3.5rem;
+      color: var(--dusty-rose);
+      margin: 0 0 10px 0;
+      text-align: center;
+    }
+
+    /* Sub-judul Website - English Italic */
+    p.site-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.3rem;
+      color: var(--espresso-brown);
+      margin: 0 0 15px 0;
+      text-align: center;
+      max-width: 650px;
+      line-height: 1.4;
+    }
+
+    /* Deskripsi - Classic, Thin, Berjarak, Rapi */
+    p.site-description {
+      font-family: 'Playfair Display', serif;
+      font-weight: 300;
+      letter-spacing: 1.5px;
+      font-size: 0.95rem;
+      color: var(--espresso-brown);
+      margin: 0 0 40px 0;
+      text-align: center;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    /* Grid Amplop 2 - 2 - 2 (2 Kolom) */
+    .envelope-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      max-width: 650px;
+      width: 100%;
+      justify-items: center;
+    }
+
+    @media (max-width: 550px) {
+      .envelope-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Struktur Amplop Shabby Chic */
+    .envelope-wrapper {
+      position: relative;
+      width: 220px;
+      height: 140px;
+      background-color: var(--blush-petal);
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(64, 46, 42, 0.15);
+      perspective: 1000px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .envelope-wrapper:hover {
+      transform: translateY(-5px);
+    }
+
+    /* Lipatan Atas Amplop */
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 110px solid transparent;
+      border-right: 110px solid transparent;
+      border-top: 75px solid var(--dusty-rose);
+      transform-origin: top;
+      transition: transform 0.5s ease;
+      z-index: 3;
+    }
+
+    /* Gambar Kucing Hitam Bersayap Pink di Tengah Amplop */
+    .cat-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .cat-badge svg {
+      width: 45px;
+      height: 45px;
+    }
+
+    /* Judul Surat di Amplop */
+    .envelope-label {
+      font-family: 'Alex Brush', cursive;
+      font-size: 1.2rem;
+      color: var(--espresso-brown);
+      z-index: 4;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    /* Kertas Surat di Dalam Amplop (Animasi Keluar) */
+    .paper-preview {
+      position: absolute;
+      bottom: 10px;
+      width: 190px;
+      height: 100px;
+      background: #ffffff;
+      border-radius: 4px;
+      z-index: 2;
+      transition: transform 0.5s ease;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* Animasi Buka Amplop saat Diklik */
+    .envelope-wrapper.open .envelope-flap {
+      transform: rotateX(180deg);
+      z-index: 1;
+    }
+
+    .envelope-wrapper.open .paper-preview {
+      transform: translateY(-50px);
+    }
+
+    /* Modal Popup Surat */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(64, 46, 42, 0.4);
+      backdrop-filter: blur(3px);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-paper {
+      background: #FFFFFF;
+      border: 2px dashed var(--dusty-rose);
+      border-radius: 12px;
+      padding: 35px 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      position: relative;
+      animation: popup 0.4s ease-out;
+    }
+
+    @keyframes popup {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 1.5rem;
+      color: var(--espresso-brown);
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* Judul Surat di Modal - Handwriting */
+    .letter-title {
+      font-family: 'Alex Brush', cursive;
+      font-size: 2.2rem;
+      color: var(--dusty-rose);
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Isi Surat - Font English, Italic sesuai permintaan */
+    .letter-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      color: var(--espresso-brown);
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+
+    /* Format Italic Khusus */
+    .italic-text {
+      font-style: italic;
+    }
+
+    /* Audio Player Custom Subtle */
+    .music-player {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      background: var(--blush-petal);
+      padding: 8px 15px;
+      border-radius: 20px;
+      border: 1px solid var(--dusty-rose);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.8rem;
+      color: var(--espresso-brown);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 50;
+    }
+
+    .music-btn {
+      background: var(--dusty-rose);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Judul Website -->
+  <h1 class="site-title">Open Me When...</h1>
+
+  <!-- Sub-judul Website -->
+  <p class="site-subtitle">Herein is kept a little piece of mine heart, that it may find you in your darkest and brightest hours alike.</p>
+
+  <!-- Deskripsi Website -->
+  <p class="site-description">Aku tinggalkan sebagian hatiku di dalam setiap surat biar kamu selalu bisa temukan aku, kapan pun kamu rindu kehadiran aku, duniaku sayang.</p>
+
+  <!-- Container Amplop 2 2 2 -->
+  <div class="envelope-grid">
+
+    <!-- Surat 1 -->
+    <div class="envelope-wrapper" onclick="openEnvelope(this, 1)">
+      <div class="envelope-flap"></div>
+      <div class="paper-preview"></div>
+      <div class="cat-badge">
+        <!-- SVG Kucing Hitam Bersayap Pink -->
+        <svg viewBox="0 0 100 100">
+          <!-- Sayap Pink -->
+          <path d="M 20 45 C 5 20, 5 60, 35 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <path d="M 80 45 C 95 20, 95 60, 65 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <!-- Badan & Kepala Kucing Hitam -->
+          <ellipse cx="50" cy="60" rx="18" ry="22" fill="#222222"/>
+          <circle cx="50" cy="40" r="16" fill="#222222"/>
+          <!-- Telinga -->
+          <polygon points="36,30 42,18 46,32" fill="#222222"/>
+          <polygon points="64,30 58,18 54,32" fill="#222222"/>
+          <!-- Mata -->
+          <circle cx="44" cy="38" r="2" fill="#FFFFFF"/>
+          <circle cx="56" cy="38" r="2" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div class="envelope-label">When you miss me.</div>
+    </div>
+
+    <!-- Surat 2 -->
+    <div class="envelope-wrapper" onclick="openEnvelope(this, 2)">
+      <div class="envelope-flap"></div>
+      <div class="paper-preview"></div>
+      <div class="cat-badge">
+        <svg viewBox="0 0 100 100">
+          <path d="M 20 45 C 5 20, 5 60, 35 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <path d="M 80 45 C 95 20, 95 60, 65 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <ellipse cx="50" cy="60" rx="18" ry="22" fill="#222222"/>
+          <circle cx="50" cy="40" r="16" fill="#222222"/>
+          <polygon points="36,30 42,18 46,32" fill="#222222"/>
+          <polygon points="64,30 58,18 54,32" fill="#222222"/>
+          <circle cx="44" cy="38" r="2" fill="#FFFFFF"/>
+          <circle cx="56" cy="38" r="2" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div class="envelope-label">When you’re sad.</div>
+    </div>
+
+    <!-- Surat 3 -->
+    <div class="envelope-wrapper" onclick="openEnvelope(this, 3)">
+      <div class="envelope-flap"></div>
+      <div class="paper-preview"></div>
+      <div class="cat-badge">
+        <svg viewBox="0 0 100 100">
+          <path d="M 20 45 C 5 20, 5 60, 35 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <path d="M 80 45 C 95 20, 95 60, 65 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <ellipse cx="50" cy="60" rx="18" ry="22" fill="#222222"/>
+          <circle cx="50" cy="40" r="16" fill="#222222"/>
+          <polygon points="36,30 42,18 46,32" fill="#222222"/>
+          <polygon points="64,30 58,18 54,32" fill="#222222"/>
+          <circle cx="44" cy="38" r="2" fill="#FFFFFF"/>
+          <circle cx="56" cy="38" r="2" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div class="envelope-label">When you can’t sleep.</div>
+    </div>
+
+    <!-- Surat 4 -->
+    <div class="envelope-wrapper" onclick="openEnvelope(this, 4)">
+      <div class="envelope-flap"></div>
+      <div class="paper-preview"></div>
+      <div class="cat-badge">
+        <svg viewBox="0 0 100 100">
+          <path d="M 20 45 C 5 20, 5 60, 35 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <path d="M 80 45 C 95 20, 95 60, 65 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <ellipse cx="50" cy="60" rx="18" ry="22" fill="#222222"/>
+          <circle cx="50" cy="40" r="16" fill="#222222"/>
+          <polygon points="36,30 42,18 46,32" fill="#222222"/>
+          <polygon points="64,30 58,18 54,32" fill="#222222"/>
+          <circle cx="44" cy="38" r="2" fill="#FFFFFF"/>
+          <circle cx="56" cy="38" r="2" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div class="envelope-label">When you want to hear me say I love you.</div>
+    </div>
+
+    <!-- Surat 5 -->
+    <div class="envelope-wrapper" onclick="openEnvelope(this, 5)">
+      <div class="envelope-flap"></div>
+      <div class="paper-preview"></div>
+      <div class="cat-badge">
+        <svg viewBox="0 0 100 100">
+          <path d="M 20 45 C 5 20, 5 60, 35 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <path d="M 80 45 C 95 20, 95 60, 65 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <ellipse cx="50" cy="60" rx="18" ry="22" fill="#222222"/>
+          <circle cx="50" cy="40" r="16" fill="#222222"/>
+          <polygon points="36,30 42,18 46,32" fill="#222222"/>
+          <polygon points="64,30 58,18 54,32" fill="#222222"/>
+          <circle cx="44" cy="38" r="2" fill="#FFFFFF"/>
+          <circle cx="56" cy="38" r="2" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div class="envelope-label">When you need a hug.</div>
+    </div>
+
+    <!-- Surat 6 -->
+    <div class="envelope-wrapper" onclick="openEnvelope(this, 6)">
+      <div class="envelope-flap"></div>
+      <div class="paper-preview"></div>
+      <div class="cat-badge">
+        <svg viewBox="0 0 100 100">
+          <path d="M 20 45 C 5 20, 5 60, 35 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <path d="M 80 45 C 95 20, 95 60, 65 55" fill="#FFD7DB" stroke="#E18498" stroke-width="2"/>
+          <ellipse cx="50" cy="60" rx="18" ry="22" fill="#222222"/>
+          <circle cx="50" cy="40" r="16" fill="#222222"/>
+          <polygon points="36,30 42,18 46,32" fill="#222222"/>
+          <polygon points="64,30 58,18 54,32" fill="#222222"/>
+          <circle cx="44" cy="38" r="2" fill="#FFFFFF"/>
+          <circle cx="56" cy="38" r="2" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div class="envelope-label">When you need a smile.</div>
+    </div>
+
+  </div>
+
+  <!-- Modal Popup Surat -->
+  <div class="modal-overlay" id="letterModal">
+    <div class="modal-paper">
+      <span class="close-btn" onclick="closeLetter()">&times;</span>
+      <h2 class="letter-title" id="modalTitle"></h2>
+      <div class="letter-body" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- Music Player Minimalist -->
+  <div class="music-player">
+    <button class="music-btn" id="playBtn" onclick="toggleMusic()">▶</button>
+    <span>Green Day - When It's Time</span>
+  </div>
+
+  <!-- Audio Background & Audio Efek Suara Kertas -->
+  <audio id="bgMusic" loop src="when-its-time.mp3"></audio>
+
+  <script>
+    // Data Isi Surat Lengkap Persis Tanpa Ubah Kata
+    const letters = {
+      1: {
+        title: "When you miss me.",
+        content: `HALOOO DUNIAKUUU. Kalau kamu lagi buka ini, berarti kamu lagi kangen, ya? CIEEEE. Sini aku temenin bentar lewat tulisan ini. 
+Aku cuma mau kamu tau… sejauh apa pun jarak kita sekarang, kamu tetap jadi salah satu hal paling nyaman yang aku punya. Makasih ya udah bertahan sejauh ini sama aku, udah sabar, udah tetap milih aku setiap hari. Aku tau ada hari-hari di mana rasanya kita cuma pingin banget pelukan secara langsung. Pingin ngobrol sambil duduk dekat, pegangan tangan, atau cuma diem bareng tanpa harus kepisah layar dan sinyal. Aku juga sering ngerasa gitu, kok. 
+Kita sama, ya? Kalau nanti tiba-tiba kamu sedih atau kesepian, coba inget ini.
+Di sini ada aku yang sayang banget sama kamu. Yang selalu senang waktu lihat notif dari kamu. Yang diam-diam senyum sendiri baca chat kamu. Yang selalu nyebutin nama kamu di doa-doa kecil sebelum tidur. Dan kalau hari ini terasa berat, pinjam dulu hatiku buat istirahat, ya?
+Aku mungkin gak selalu bisa ada buat kamu, tapi aku akan selalu coba ada buat kamu, lewat pesan random, lewat <span class="italic-text">“aku kangen kamu!”</span>, atau lewat hal-hal kecil yang semoga bisa bikin kamu ngerasa ditemenin. Jadi kamu boleh kangen jangan sedih yaa, duniaku. Nanti akan ada waktunya kita ketemu, dan semua kangen yang numpuk itu bakal aku ganti jadi peluk paling lama dan hangat.
+Aku sayang kamu. Banyak. Selalu. <span class="italic-text">I LOVE YOU THE MOST.</span>`
+      },
+      2: {
+        title: "When you’re sad.",
+        content: `HALOOO MANISKUUU. Kalau kamu buka ini, berarti harimu lagi nggak baik-baik aja ya? Sini, duduk dulu bentar sama aku. Walaupun cuma lewat tulisan, aku pengen nemenin kamu sampai perasaan itu pelan-pelan reda. 
+Pertama… kamu boleh capek. Kamu boleh sedih. Kamu boleh merasa dunia lagi berat banget. Jangan maksa diri kamu buat selalu kuat setiap saat, ya? Bahkan orang sebaik dan sehebat kamu juga punya batas. Dan itu gak bikin kamu lemah sedikit pun.
+Aku gak tau persis apa yang lagi bikin kamu sedih sekarang, tapi aku harap kamu inget satu hal, kamu nggak sendirian. Ada aku di sini. Yang bakal dengerin cerita kamu, bahkan kalau isinya cuma, <span class="italic-text">“Aku nggak tau kenapa aku sedih.”</span>, yang bakal tetap tinggal walaupun kamu lagi bad mood, ngambek, diem, atau gak seramai biasanya.
+Aku harap kamu jangan terlalu keras sama diri sendiri. Kamu udah jalan sejauh ini, udah bertahan selama ini, dan aku bangga banget sama kamu, jauh lebih lebih lebih bangga daripada yang kamu sadar.
+Sekarang tarik napas pelan-pelan ya. Minum air. Istirahat kalau perlu. Dan kalau dunia terasa terlalu berisik, pulang aja ke aku sebentar. Aku memang gak bisa langsung peluk kamu sekarang, tapi kalau bisa, aku pasti udah ada di samping kamu sambil bilang, <span class="italic-text">“Udah ya… Sini aku temenin sampai kamu bisa senyum lagi.”</span>
+Hari buruk gak akan berlangsung selamanya. Dan sampai semuanya membaik, aku akan tetap ada buat kamu. Aku sayang kamu. Bahkan di hari-hari paling beratmu. Terutama di hari-hari itu.`
+      },
+      3: {
+        title: "When you can’t sleep.",
+        content: `SELAMAAAT MALAAAM, BINTANGKUUU YANG PALING BERSINAR. Kalau kamu lagi baca ini tengah malam sambil susah tidur… sini aku temenin dulu ya. Jangan bengong sendirian terus! 
+Aku tau kadang ada malam di mana kepala jadi berisik. Pikiran ke mana-mana, hati jadi lebih sensitif, dan hal kecil tiba-tiba terasa berat. Apalagi kalau aku gak ada di samping kamu buat nemenin langsung, hehehehe.
+Tapi sekarang coba pelan-pelan tenang yaa. Bayangin aku lagi ada di samping kamu. Puk puk kepala kamu pelan. Pejamin mata kamu pas aku bilang, <span class="italic-text">“Udah… istirahat ya sayang, kamu udah jadi yang terbaik hari ini.”</span>
+Aku bangga sama kamu. Sesibuk apa pun harimu, seberat apa pun yang kamu hadapin, kamu masih bertahan sampai malam ini. Dan itu hebat. Sekarang tarik napas pelan ya. Tarik… Buang… Tarik lagi… Buang pelan-pelan… KAYAK YANG PERNAH KAMU KASIH TAU AKUUU HEHEHE. Jangan pikirin semua hal sekaligus malam ini. Dunia bisa nunggu besok. Yang penting sekarang kamu istirahat dulu.
+Kalau kamu masih belum bisa tidur, coba inget hal-hal kecil tentang kita, apa aja boleh kok, sayang. Dan juga semua hal yang masih pengen kita jalanin bareng nanti. Aku harap suatu hari nanti aku bisa beneran nemenin kamu tidur. Bukan cuma lewat tulisan kayak gini, tapi langsung meluk kamu sampai kamu ketiduran di samping aku.
+Sampai hari itu datang, tolong jaga diri kamu baik-baik ya? Selamat tidur, bintangku. Semoga mimpi kamu hangat. Dan semoga di mimpi itu… ada aku.`
+      },
+      4: {
+        title: "When you want to hear me say I love you.",
+        content: `Aku sayang kamu. Satu dunia, lebih.
+Mungkin kamu buka ini karena hari ini kamu lagi butuh diyakinin. Jadi sini aku ulang berkali-kali kalau perlu. Aku sayang kamu. Aku beneran sayang sama kamu.
+Aku sayang cara kamu cerita hal-hal kecil ke aku. Aku sayang cara kamu bikin hariku jadi lebih ringan. Aku sayang obrolan kamu, ketawa kamu, cara kamu manggil aku, bahkan sisi kamu yang kadang nyebelin itu (SEDIKIT BANGET KOK). 
+Dan yang paling aku sayang… adalah fakta kalau di antara banyak orang di dunia ini, aku dipertemukan sama kamu. Kalau suatu hari kamu ngerasa kurang dicintai, baca ini lagi ya. Kamu dicintai sebesar itu sama aku.
+Dan yang paling aku sayang… adalah fakta kalau di antara banyak orang di dunia ini, aku dipertemukan sama kamu. Kalau suatu hari kamu ngerasa kurang dicintai, baca ini lagi ya. Kamu dicintai sebesar itu sama aku.
+Bukan cuma di hari kamu bahagia. Tapi juga di hari kamu capek. Hari kamu jelek. Hari kamu overthinking. Hari kamu ngerasa nggak cukup. Aku tetap sayang. Aku nggak tau masa depan bakal kayak gimana, tapi sejauh ini… kamu itu rumah paling nyaman yang pernah aku temuin dalam bentuk manusia, atau… <span class="italic-text">angel</span>? Dan lucunya, sampai sekarang aku masih bisa senyum sendiri cuma gara-gara kamu.
+Jadi kalau malam ini kamu butuh denger itu sekali lagi… Aku sayang kamu. Aku pilih kamu. Dan aku bersyukur banget punya kamu, <span class="italic-text">homie</span>.`
+      },
+      5: {
+        title: "When you need a hug.",
+        content: `AYOOO SINI MANA YANG MAU DIPELUK? Sini, sayang. Aku tau kadang ada hari di mana kamu cuma pingen dipeluk tanpa harus jelasin apa-apa. 
+Hari di mana semuanya terasa capek, berisik, dan hati kamu cuma pengen tenang sebentar. Kalau sekarang aku ada di depan kamu, mungkin aku udah narik kamu pelan ke pelukan aku sambil bilang, <span class="italic-text">“Udah… Gapapa, aku di sini.”</span> Jadi untuk sementara, anggap tulisan ini sebagai peluk dari aku ya? 
+Peluk yang bilang kalau kamu gak harus kuat terus. Peluk yang bilang kalau kamu boleh istirahat. Peluk yang bilang kalau kamu dicintai lebih banyak daripada yang kamu kira. Aku pengen kamu tau, kamu itu berharga banget. Dan aku harap dunia gak terlalu jahat sama hati selembut kamu.
+Kalau hari ini berat, pulang dulu ke aku. Gak perlu buru-buru membaik. Gak perlu pura-pura senyum kalau memang capek. Aku tetap ada. Dan kalau suatu saat nanti kita ketemu, aku janji bakal kasih peluk paling hangat, paling nyaman dan paling lama buat semua rindu yang selama ini cuma bisa dipendam.
+Sampai hari itu datang… tolong peluk diri kamu pelan-pelan untuk aku ya? Karena kalau aku bisa, aku pasti udah meluk kamu sekarang juga. Aku sayang kamu, bayi! Sini peluk lagi!`
+      },
+      6: {
+        title: "When you need a smile.",
+        content: `HEI KAMU. Kalau kamu buka ini, berarti kamu lagi butuh ketawa ya? Oke, tugas aku sekarang adalah jadi badut pribadi kamu sebentar. 
+Pertama-tama… coba bayangin aku lagi tengil nggak jelas kayak stiker Seonghyeon waktu itu, cuma buat bikin kamu senyum. Iya, yang malu-maluin itu. Yang kalau dilihat orang mungkin langsung disuruh pulang, atau kamu udah nyeret aku pulang duluan? ATAU KAMU TINGGALIN AKU PURA-PURA GAK KENAL? 
+TAPI jujur ya… kamu tuh punya bakat bikin aku jadi manusia paling nggak jelas sedunia. Aku bisa senyum cuma gara-gara notif kamu. Aku bisa bengong sambil baca chat kamu berkali-kali. Aku bahkan kadang senyum sendiri kayak orang aneh pas inget tingkah kamu.
+OH dan satu lagi, kalau suatu hari kita tinggal bareng, fix rumah kita bakal berisik banget karena banyak ketawa hal gak jelas, ributin makanan, rewel minta peluk dan cium, terus apa lagi yaaa?
+Pokoknya sekarang… tolong senyum dikit dong. Aku kangen senyum kamu, tau. Kalau belum ketawa juga, nih aku kasih fakta. Di antara miliaran orang di dunia, aku malah jatuh cinta sama manusia yang lagi baca ini. Lucu nggak tuh nasib aku AKUUU SUKA DEH SAMA NASIBKU. Kamu manis kalau ketawa. Dan kalau gak ada alasan buat ketawa hari ini, ketawain aja aku. 
+KETAWAA YANG BANYAAAK, ledekin aja aku, isengin aja, BOLEEEH SEMUAAA. Aku tetap sayang kamu yang banyak kok, angelku.`
+      }
+    };
+
+    // Fungsi Sintesis Efek Suara Kertas Membuka
+    function playPaperSound() {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const bufferSize = audioCtx.sampleRate * 0.3;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 800;
+      noise.connect(filter);
+      filter.connect(audioCtx.destination);
+      noise.start();
+    }
+
+    // Fungsi Buka Amplop & Popup
+    function openEnvelope(element, id) {
+      // Putar lagu jika belum berjalan
+      const bgMusic = document.getElementById('bgMusic');
+      if (bgMusic.paused) {
+        bgMusic.play().catch(() => {});
+        document.getElementById('playBtn').innerText = '❚❚';
+      }
+
+      // Animasi Amplop Membuka
+      element.classList.add('open');
+      playPaperSound();
+
+      // Tampilkan Modal setelah animasi amplop
+      setTimeout(() => {
+        document.getElementById('modalTitle').innerText = letters[id].title;
+        document.getElementById('modalContent').innerHTML = letters[id].content;
+        document.getElementById('letterModal').style.display = 'flex';
+      }, 500);
+    }
+
+    // Fungsi Tutup Surat
+    function closeLetter() {
+      document.getElementById('letterModal').style.display = 'none';
+      document.querySelectorAll('.envelope-wrapper').forEach(el => el.classList.remove('open'));
+    }
+
+    // Toggle Musik
+    function toggleMusic() {
+      const bgMusic = document.getElementById('bgMusic');
+      const playBtn = document.getElementById('playBtn');
+      if (bgMusic.paused) {
+        bgMusic.play();
+        playBtn.innerText = '❚❚';
+      } else {
+        bgMusic.pause();
+        playBtn.innerText = '▶';
+      }
+    }
+  </script>
+</body>
+</html>
